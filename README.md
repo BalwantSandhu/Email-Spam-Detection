@@ -279,31 +279,6 @@ http://127.0.0.1:8080
 
 ---
 
-## 📚 Advanced Usage
-
-### Train with Custom Parameters
-
-```python
-# In Python
-from src.baseline_models import train_svm
-from src.data_preprocessing import load_split_data, get_text_and_labels
-from src.feature_extraction import extract_tfidf_features
-
-# Load data
-train_df, dev_df, test_df = load_split_data()
-train_texts, train_labels = get_text_and_labels(train_df)
-
-# Extract features
-train_X, dev_X, test_X, extractor = extract_tfidf_features(
-    train_texts, dev_texts, test_texts,
-    max_features=10000,
-    ngram_range=(1, 3)
-)
-
-# Train with custom parameters
-model, metrics = train_svm(train_X, train_labels, dev_X, dev_labels, C=10.0)
-```
-
 ### Use Trained Models for Predictions
 
 ```python
@@ -347,25 +322,6 @@ Automatically generated visualizations include:
 - **Performance Tables**: Detailed metrics comparison
 
 All saved as high-resolution PNG files in `results/`
-
----
-
-## 🎓 Addressing Professor's Feedback
-
-### ✅ Dataset Splits
-- Proper 70/15/15 split implemented
-- Stratified to maintain class balance
-- Random seed (42) for reproducibility
-
-### ✅ Baseline Models
-- Logistic Regression added as suggested
-- All models use consistent TF-IDF features
-- SVM uses same features as Naive Bayes
-
-### ✅ Evaluation Framework
-- F1 Score as primary metric
-- Comprehensive precision and recall analysis
-- Detailed confusion matrices for all models
 
 ---
 
