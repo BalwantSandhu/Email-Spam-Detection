@@ -1,0 +1,82 @@
+# Configuration for Email Spam Detection Project
+
+# Data settings
+data:
+  dataset_path: "data/email_spam.csv"
+  train_path: "data/train.csv"
+  dev_path: "data/dev.csv"
+  test_path: "data/test.csv"
+  train_size: 0.70
+  dev_size: 0.15
+  test_size: 0.15
+  random_seed: 42
+
+# Text preprocessing
+preprocessing:
+  lowercase: true
+  remove_punctuation: false
+  remove_numbers: false
+  remove_stopwords: false
+  min_word_length: 1
+  max_features: 10000
+
+# TF-IDF settings
+tfidf:
+  max_features: 5000
+  ngram_range: [1, 2]
+  min_df: 2
+  max_df: 0.95
+  use_idf: true
+  sublinear_tf: true
+
+# Baseline models
+naive_bayes:
+  alpha: 1.0  # Laplace smoothing
+
+svm:
+  C: 1.0
+  kernel: "linear"
+  max_iter: 1000
+  random_state: 42
+
+logistic_regression:
+  C: 1.0
+  max_iter: 1000
+  random_state: 42
+  solver: "liblinear"
+
+# BERT/DistilBERT settings
+bert:
+  model_name: "distilbert-base-uncased"
+  max_length: 512
+  batch_size: 16
+  learning_rate: 2e-5
+  num_epochs: 5
+  warmup_steps: 100
+  weight_decay: 0.01
+  gradient_accumulation_steps: 1
+  fp16: false  # Set to true if using GPU with mixed precision
+
+# Training settings
+training:
+  device: "cuda"  # or "cpu"
+  random_seed: 42
+  early_stopping_patience: 3
+  save_best_model: true
+
+# Evaluation settings
+evaluation:
+  metrics:
+    - accuracy
+    - precision
+    - recall
+    - f1_score
+    - roc_auc
+  average: "binary"  # For binary classification
+  pos_label: "spam"
+
+# Paths
+paths:
+  models_dir: "models/"
+  results_dir: "results/"
+  logs_dir: "logs/"
