@@ -1,0 +1,4 @@
+Model,Accuracy,Precision,Recall,F1 Score,ROC AUC
+Naive Bayes,1.0000,1.0000,1.0000,1.0000,1.0000
+Svm,1.0000,1.0000,1.0000,1.0000,1.0000
+Logistic Regression,1.0000,1.0000,1.0000,1.0000,1.0000
