@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Spam Classifier</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .info-box {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+        }
+
+        .info-box p {
+            color: #555;
+            line-height: 1.6;
+            margin: 5px 0;
+        }
+
+        .info-box strong {
+            color: #667eea;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: #333;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+            background: white;
+            cursor: pointer;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            font-family: inherit;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-primary:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result-box {
+            margin-top: 30px;
+            padding: 25px;
+            border-radius: 15px;
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .result-box.spam {
+            background: #ffe0e0;
+            border: 3px solid #ff4444;
+        }
+
+        .result-box.ham {
+            background: #e0f7e0;
+            border: 3px solid #44ff44;
+        }
+
+        .result-label {
+            font-size: 2em;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .result-label.spam {
+            color: #cc0000;
+        }
+
+        .result-label.ham {
+            color: #00aa00;
+        }
+
+        .result-details {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+
+        .result-details p {
+            margin: 8px 0;
+            color: #555;
+        }
+
+        .result-details strong {
+            color: #333;
+        }
+
+        .confidence-bar {
+            width: 100%;
+            height: 30px;
+            background: #f0f0f0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            transition: width 1s ease-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .examples {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 10px;
+        }
+
+        .examples h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .example-btn {
+            display: inline-block;
+            margin: 5px;
+            padding: 8px 15px;
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 20px;
+            color: #667eea;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s;
+        }
+
+        .example-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #999;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📧 Email Spam Classifier</h1>
+        <p class="subtitle">Powered by Machine Learning</p>
+
+        <div class="info-box">
+            <p><strong>Best Model:</strong> SVM (F1 Score: 0.5714)</p>
+            <p><strong>How it works:</strong> Paste your email text below and our trained ML models will classify it as spam or legitimate (ham).</p>
+        </div>
+
+        <form id="classifyForm">
+            <div class="form-group">
+                <label for="modelSelect">Select Classification Model:</label>
+                <select id="modelSelect" name="model">
+                    {% for model in model_names %}
+                    <option value="{{ model }}" {% if model == 'SVM' %}selected{% endif %}>
+                        {{ model }}{% if model == 'SVM' %} (Recommended - Best Performance){% endif %}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="emailText">Email Text:</label>
+                <textarea 
+                    id="emailText" 
+                    name="email_text" 
+                    placeholder="Paste your email content here...&#10;&#10;Example:&#10;Subject: Congratulations! You've won $1,000,000!&#10;&#10;Dear Winner,&#10;&#10;You have been selected to receive ONE MILLION DOLLARS! Click here now to claim your prize..."
+                    required
+                ></textarea>
+            </div>
+
+            <div class="button-group">
+                <button type="submit" class="btn-primary" id="submitBtn">
+                    🔍 Classify Email
+                </button>
+                <button type="button" class="btn-secondary" onclick="clearForm()">
+                    🗑️ Clear
+                </button>
+            </div>
+        </form>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Analyzing email...</p>
+        </div>
+
+        <div class="result-box" id="resultBox">
+            <div class="result-label" id="resultLabel"></div>
+            <div class="confidence-bar">
+                <div class="confidence-fill" id="confidenceFill"></div>
+            </div>
+            <div class="result-details" id="resultDetails"></div>
+        </div>
+
+        <div class="examples">
+            <h3>📝 Try Example Emails:</h3>
+            <button class="example-btn" onclick="loadExample('spam1')">Spam Example 1</button>
+            <button class="example-btn" onclick="loadExample('spam2')">Spam Example 2</button>
+            <button class="example-btn" onclick="loadExample('ham1')">Legitimate Email 1</button>
+            <button class="example-btn" onclick="loadExample('ham2')">Legitimate Email 2</button>
+        </div>
+
+        <div class="footer">
+            <p>Email Spam Detection Project | Machine Learning & NLP</p>
+            <p>Team: Balwant Singh & Khushpreet Singh</p>
+        </div>
+    </div>
+
+    <script>
+        const examples = {
+            spam1: `Subject: URGENT! You've Won $1,000,000 💰
+
+Dear Lucky Winner,
+
+CONGRATULATIONS! You have been randomly selected to receive ONE MILLION DOLLARS in our international lottery draw!
+
+🎉 CLAIM YOUR PRIZE NOW 🎉
+
+Click here immediately: http://fake-lottery-scam.com
+
+This offer expires in 24 hours! Act fast or lose your fortune!
+
+WARNING: Do not share this email with anyone or your prize will be forfeited!
+
+Best regards,
+International Lottery Commission`,
+
+            spam2: `Subject: Hot Singles in Your Area! 😍
+
+Hey there!
+
+Lonely? Looking for love? We have THOUSANDS of hot singles waiting to meet you RIGHT NOW!
+
+✨ 100% FREE SIGNUP ✨
+✨ NO CREDIT CARD NEEDED ✨
+✨ MEET TONIGHT ✨
+
+Click here: http://dating-scam.com
+
+Don't miss out on the love of your life! Limited time offer!
+
+P.S. Your profile has already been viewed 47 times!`,
+
+            ham1: `Subject: Project Meeting Tomorrow at 3 PM
+
+Hi Team,
+
+Just a reminder that we have our project sync meeting scheduled for tomorrow (Wednesday) at 3:00 PM in Conference Room B.
+
+Agenda:
+- Sprint review
+- Q4 roadmap discussion
+- Resource allocation
+
+Please come prepared with your updates. Let me know if you can't make it.
+
+Thanks,
+Sarah
+Project Manager`,
+
+            ham2: `Subject: Your Amazon Order Confirmation
+
+Hello,
+
+Thank you for your order! Your order #123-4567890-1234567 has been confirmed.
+
+Order Details:
+- Item: Wireless Headphones
+- Quantity: 1
+- Total: $79.99
+
+Estimated Delivery: November 25-27, 2024
+
+You can track your order at: amazon.com/orders
+
+Thank you for shopping with Amazon!
+
+Amazon Customer Service`
+        };
+
+        function loadExample(exampleKey) {
+            document.getElementById('emailText').value = examples[exampleKey];
+            document.getElementById('emailText').focus();
+        }
+
+        function clearForm() {
+            document.getElementById('emailText').value = '';
+            document.getElementById('resultBox').style.display = 'none';
+        }
+
+        document.getElementById('classifyForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const emailText = document.getElementById('emailText').value;
+            const modelName = document.getElementById('modelSelect').value;
+            const submitBtn = document.getElementById('submitBtn');
+            const loading = document.getElementById('loading');
+            const resultBox = document.getElementById('resultBox');
+
+            // Show loading
+            submitBtn.disabled = true;
+            loading.style.display = 'block';
+            resultBox.style.display = 'none';
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email_text: emailText,
+                        model_name: modelName
+                    })
+                });
+
+                const result = await response.json();
+
+                // Hide loading
+                loading.style.display = 'none';
+                submitBtn.disabled = false;
+
+                if (result.error) {
+                    alert('Error: ' + result.error);
+                    return;
+                }
+
+                // Show result
+                displayResult(result);
+
+            } catch (error) {
+                loading.style.display = 'none';
+                submitBtn.disabled = false;
+                alert('Error: ' + error.message);
+            }
+        });
+
+        function displayResult(result) {
+            const resultBox = document.getElementById('resultBox');
+            const resultLabel = document.getElementById('resultLabel');
+            const confidenceFill = document.getElementById('confidenceFill');
+            const resultDetails = document.getElementById('resultDetails');
+
+            // Set label
+            resultLabel.textContent = result.label;
+            
+            // Set colors based on result
+            if (result.is_spam) {
+                resultBox.className = 'result-box spam';
+                resultLabel.className = 'result-label spam';
+                resultLabel.textContent = '⚠️ SPAM DETECTED';
+            } else {
+                resultBox.className = 'result-box ham';
+                resultLabel.className = 'result-label ham';
+                resultLabel.textContent = '✅ LEGITIMATE EMAIL';
+            }
+
+            // Set confidence bar
+            confidenceFill.style.width = '0%';
+            setTimeout(() => {
+                confidenceFill.style.width = result.confidence + '%';
+                confidenceFill.textContent = result.confidence + '%';
+            }, 100);
+
+            // Set details
+            resultDetails.innerHTML = `
+                <p><strong>Classification:</strong> ${result.label}</p>
+                <p><strong>Confidence:</strong> ${result.confidence}%</p>
+                <p><strong>Model Used:</strong> ${result.model_used}</p>
+                ${result.cleaned_text_preview ? '<p><strong>Processed Text Preview:</strong> ' + result.cleaned_text_preview + '</p>' : ''}
+            `;
+
+            // Show result box
+            resultBox.style.display = 'block';
+
+            // Scroll to result
+            resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    </script>
+</body>
+</html>
