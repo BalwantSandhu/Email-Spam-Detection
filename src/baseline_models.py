@@ -4,7 +4,7 @@ Implements Naive Bayes, SVM, and Logistic Regression classifiers
 """
 
 from sklearn.naive_bayes import MultinomialNB
-from sklearn.svm import LinearSVC
+from sklearn.svm import SVC
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 import pickle
@@ -46,7 +46,9 @@ class BaselineModel:
             C = kwargs.get('C', 1.0)
             max_iter = kwargs.get('max_iter', 1000)
             random_state = kwargs.get('random_state', 42)
-            return LinearSVC(C=C, max_iter=max_iter, random_state=random_state, dual=False)
+            return SVC(C=C, kernel='linear', max_iter=max_iter, 
+                        random_state=random_state, probability=True, 
+                        class_weight='balanced')
         
         elif self.model_type == 'logistic_regression':
             C = kwargs.get('C', 1.0)
@@ -96,12 +98,6 @@ class BaselineModel:
         """
         if hasattr(self.model, 'predict_proba'):
             return self.model.predict_proba(X)
-        elif hasattr(self.model, 'decision_function'):
-            # For SVM, convert decision function to probabilities
-            decision = self.model.decision_function(X)
-            # Simple sigmoid transformation
-            proba = 1 / (1 + np.exp(-decision))
-            return np.column_stack([1 - proba, proba])
         else:
             raise NotImplementedError(f"{self.model_type} does not support probability predictions")
     
